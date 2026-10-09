@@ -1087,7 +1087,7 @@ Instituímos a **Absolute Framework Override** e a exigência de **Pull Requests
 
 ---
 
-## DEC-025 — Agent Spec Review via CI (Local Execution)
+## DEC-030 — Agent Spec Review via CI (Local Execution)
 
 **Status:** Accepted
 

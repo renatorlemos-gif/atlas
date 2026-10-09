@@ -64,7 +64,7 @@ def run_review(diffs):
 
     client = genai.Client()
     
-    models_to_try = ['gemini-1.5-flash', 'gemini-3.8-flash', 'gemini-1.5-pro']
+    models_to_try = ['gemini-3.8-flash', 'gemini-3.1-pro-preview']
     response = None
     import time
 
