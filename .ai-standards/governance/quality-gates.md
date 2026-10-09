@@ -35,6 +35,7 @@ O detalhamento funcional e os critérios finos estão nos documentos padrão de 
 - **Critérios de Entrada:** Requirements consolidados (PRD Draft) e Artefatos de Solution Definition concluídos (ADR e/ou UX-Journey, quando aplicável pela triagem).
 - **Critérios de Validação (Saída):** Escopo bem definido no PRD, viabilidade técnica e usabilidade confirmadas pelos artefatos de Solução, critérios de sucesso aprovados. O PRD muda para `Approved`.
 - **Responsável pela Aprovação:** Product Owner (com aval de Tech Lead/UX).
+- **Mecanismo de Aprovação (Agentes):** O Agente **NÃO** deve aprovar localmente ou seguir em frente de forma autônoma. É obrigatória a criação de uma branch e a submissão de um **Pull Request** contendo o PRD e os artefatos de Solution Definition. O Merge deste PR pelo humano é o que formaliza a aprovação deste Gate.
 - **Condição de Reprovação:** PRD inconsistente com as restrições técnicas descobertas durante o Solution Definition, ou UX considerado inviável.
 - **Caminho de Reprocessamento:** Revisão do escopo no documento de PRD (cortar features, negociar trade-offs) e nova validação arquitetural.
 
@@ -58,7 +59,7 @@ O detalhamento funcional e os critérios finos estão nos documentos padrão de 
 
 - **Critérios de Entrada:** Feature Definition aprovada, PRD Aprovado, User Stories elaboradas com Acceptance Criteria (AC).
 - **Critérios de Validação (Saída):** História alinhada com a `governance/definition-of-ready.md`. Os critérios de aceite estão verificáveis. **O Humano (Usuário) aprovou o lote de User Stories gerado para esta Feature.**
-- **Responsável pela Aprovação:** Humano (Parada Obrigatória 🛑). O Agente DEVE pausar e solicitar a aprovação explícita para iniciar o desenvolvimento da Feature.
+- **Responsável pela Aprovação:** Humano (Parada Obrigatória 🛑 via Pull Request). O Agente DEVE empacotar as User Stories geradas, submeter em uma branch separada e abrir um **Pull Request**. A fase de desenvolvimento só poderá ser iniciada após a revisão e o Merge deste PR pelo humano.
 - **Condição de Reprovação:** História demasiadamente grande, AC raso, ou o Humano rejeitou a abordagem de negócio.
 - **Caminho de Reprocessamento:** Quebra (split) da User Story, refinamento dos ACs ou correção da lógica da História pelo PO.
 

@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Classification {
+  SCRIPTED
+  UNSCRIPTED
+}
+
+model Format {
+  id                      String          @id @default(uuid()) @db.Uuid
+  original_name           String
+  translated_name         String?
+  distributor             String
+  country_of_origin       String?
+  classification          Classification?
+  synopsis                String?
+  scout_notes             String?
+  external_reference_link String?
+  video_link              String?
+  original_release_year   Int?
+  known_adaptations_count Int?
+  created_at              DateTime        @default(now())
+  updated_at              DateTime        @updatedAt
+
+  tags     FormatTag[]
+  contacts FormatContact[]
+
+  @@map("format")
+}
+
+model FormatTag {
+  id        String @id @default(uuid()) @db.Uuid
+  format_id String @db.Uuid
+  tag       String
+
+  format Format @relation(fields: [format_id], references: [id], onDelete: Cascade)
+
+  @@map("format_tag")
+}
+
+model FormatContact {
+  id        String  @id @default(uuid()) @db.Uuid
+  format_id String  @db.Uuid
+  name      String?
+  email     String?
+
+  format Format @relation(fields: [format_id], references: [id], onDelete: Cascade)
+
+  @@map("format_contact")
+}
