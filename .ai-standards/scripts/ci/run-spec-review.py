@@ -64,11 +64,11 @@ def run_review(diffs):
 
     client = genai.Client()
     
-    print("Enviando Diff para o Spec Reviewer (Gemini 2.5 Pro)...")
+    print("Enviando Diff para o Spec Reviewer (Gemini 3.1 Pro)...")
     
     try:
         response = client.models.generate_content(
-            model='gemini-2.5-pro',
+            model='gemini-3.1-pro-preview',
             contents=user_prompt,
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction,
