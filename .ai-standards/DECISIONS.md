@@ -185,7 +185,7 @@ Evitar a complexidade de versionamento independente de cada domÃ­nio antes que
 Um projeto pode declarar explicitamente a versÃ£o dos standards que estÃ¡ utilizando, quando isso for necessÃ¡rio:
 
 standards:
-  repository: software-delivery-standards
+  repository: globo-agentic-framework
   version: 0.1.0
 
 ---
@@ -990,7 +990,7 @@ O Work In Progress (WIP) padrão para triagem e desdobramento é de **1 (uma) Fe
 
 ### Contexto
 
-Inicialmente, o bootstrap para agentes (como o DevTeam) exigia que a IA fizesse referência e carregasse dinamicamente os padrões e templates hospedados no repositório central `software-delivery-standards` a cada execução. 
+Inicialmente, o bootstrap para agentes (como o DevTeam) exigia que a IA fizesse referência e carregasse dinamicamente os padrões e templates hospedados no repositório central `globo-agentic-framework` a cada execução. 
 
 Isso criava os seguintes desafios:
 - Dificuldade para agentes que não possuíam acesso cross-repo na mesma workspace.
@@ -1001,7 +1001,7 @@ Isso criava os seguintes desafios:
 
 Adotamos a **Inversão de Controle** via Vendoring (Cache Local) de governança para projetos de software (Project-Centric AI Governance).
 
-1. O repositório `software-delivery-standards` atua apenas como um "Registry" (semelhante ao NPM).
+1. O repositório `globo-agentic-framework` atua apenas como um "Registry" (semelhante ao NPM).
 2. Na inicialização de um projeto, a versão corrente dos padrões é copiada fisicamente para dentro do projeto (ex: na pasta `.ai-standards/`).
 3. Um manifesto de governança raiz (`AGENTS.md`), gerado a partir do template do repositório central, é colocado no projeto alvo informando: *"Siga as regras e templates encontrados na pasta `.ai-standards/` deste repositório"*.
 
@@ -1052,3 +1052,90 @@ Adotamos o padrão **Workflow-as-Data** com **Match Semântico de Responsabilida
 
 - O template `AGENTS.md` foi reescrito para incluir a matriz "ROLE & ARTIFACT MAPPING".
 - Times agênticos consumidores (ex: DevTeam) devem deletar skills focadas em artefatos específicos e adotar personas de execução genéricas, cuja diretriz zero seja buscar suas instruções operacionais nesse mapa.
+
+
+---
+
+## DEC-029 — Mandatory Pull Request Gates & Absolute Framework Override
+
+**Status:** Accepted
+
+### Contexto
+
+Com a consolidação do ecossistema de múltiplos agentes e o uso de "Project-Centric AI Governance" (DEC-025), notamos que certos agentes de terceiros ou plugins locais possuíam vieses inerentes ou instruções em seus próprios prompts (ex: aprovações obrigatórias no chat, fluxos engessados).
+Isso apresentava dois riscos críticos:
+1. Agentes poderiam ignorar a governança local para seguir seus prompts nativos.
+2. Agentes estavam aprovando passagens de estágio ("Gates") de forma informal no chat, pulando mecanismos de rastreabilidade (Code Review / Pull Requests) exigidos para a entrega de produtos maduros.
+
+### Decisão
+
+Instituímos a **Absolute Framework Override** e a exigência de **Pull Requests como Mecanismo Oficial de Gate**.
+
+1. **Absolute Override:** Todo arquivo `AGENTS.md` (Blueprint) inserido em um projeto deve conter, em seu topo, uma cláusula explícita informando que a governança do framework local SOBRESCREVE totalmente as instruções base e a metodologia nativa do agente.
+2. **Formal Approval via Pull Requests:** A aprovação informal via chat para conclusão de artefatos essenciais (Gate de Solution Definition e Gate de Ready for Development) está proibida. O Agente de IA está obrigado a commitar seus artefatos em uma branch separada e abrir um Pull Request. A aprovação da fase e o avanço para a etapa seguinte (ex: começar a codificar) só ocorre após o humano ou o responsável do projeto efetuar o Merge do PR.
+
+### Rationale
+
+- **Compliance e Rastreabilidade:** Obrigar a abertura de um PR antes da aprovação força o humano a fazer uma revisão do "diff" (via ferramenta Git), evitando que erros ou alucinações passem para o desenvolvimento por um mero "ok" dado de forma distraída no chat.
+- **Hierarquia de Restrições:** Em arquiteturas de LLM, a cláusula de Override funciona como uma resolução de conflito explícita. Quando o agente se deparar com suas regras internas e as do framework, ele sempre privilegiará a matriz do projeto.
+
+### Consequences
+
+- O arquivo global `governance/quality-gates.md` foi atualizado para não permitir aprovações informais (chat) no Gate 3.3 e 3.4.
+- O template central `templates/project/AGENTS.md` recebeu a regra mestre *ABSOLUTE FRAMEWORK OVERRIDE* na primeira linha de suas diretrizes operacionais.
+
+
+---
+
+## DEC-030 — Agent Spec Review via CI (Local Execution)
+
+**Status:** Accepted
+
+### Decision
+
+A capacidade de "Agent Spec Review" (revisão automatizada de artefatos de produto e documentação) será implementada como uma *Capability* distribuída.
+O repositório central fornecerá:
+1. O Padrão Normativo (`agent-spec-review-standard.md`).
+2. O Motor de Execução (Script Python em `scripts/ci/run-spec-review.py`).
+3. O Template de Gatilho (ex: `templates/ci/github-action-spec-review.yml`).
+
+Esses artefatos serão consumidos pelos projetos via processo de *Vendoring* (`.ai-standards/`). O pipeline de CI do projeto executará o agente localmente.
+
+### Rationale
+
+Para garantir a **Compatibilidade de Versão**, o Agente precisa avaliar os documentos de uma *Pull Request* utilizando as regras normativas exatas que aquele projeto adotou.
+Se o repositório central rodasse a revisão ativamente, haveria acoplamento e risco de quebrar projetos desatualizados.
+Rodando o *Spec Reviewer* dentro do CI do projeto e apontando-o para a pasta `.ai-standards/` local, garante-se que a revisão respeite estritamente a versão de governança contida naquela respectiva *branch*.
+
+### Consequences
+
+- Projetos consumidores precisam configurar seu CI copiando o template fornecido e adicionando uma chave de API (`GEMINI_API_KEY`) em seus *secrets*.
+- O script em Python fornecido no framework deve ser mantido compatível com os runners padrões (ex: Ubuntu) sem exigir dependências sistêmicas complexas além do pacote `google-genai`.
+- O Agente rodando no CI está PROIBIDO de acessar remotamente o repositório central para buscar regras. O cache local (`.ai-standards/`) é a única *Source of Truth* durante o review.
+
+
+---
+
+## DEC-031 — Agent Code Review via CI (Local Execution)
+
+**Status:** Accepted
+
+### Decision
+
+A capacidade de "Agent Code Review" (revisão automatizada de código-fonte) será implementada através de *Vendoring*, seguindo a mesma arquitetura de Inversão de Controle estabelecida na DEC-030.
+
+O framework fornecerá:
+1. Padrão Normativo (`development/agent-code-review-standard.md`).
+2. Motor de Execução (`scripts/ci/run-code-review.py`).
+3. Template de Gatilho (`templates/ci/github-action-code-review.yml`).
+
+### Rationale
+
+O Code Review automatizado possui alta propensão a gerar "ruído" (falsos-positivos de estilo e linting) que frustra os desenvolvedores. Para mitigar isso, o modelo arquitetural exige que o Agente foque estritamente em falhas lógicas graves, segurança, performance estrutural e respeito a ADRs, ignorando formatações cosméticas.
+O isolamento em duas *capabilities* (Spec Review para markdown e Code Review para código) permite o uso de modelos diferentes e prompts estritamente direcionados.
+
+### Consequences
+
+- Projetos rodando esta capability precisarão ter o script `run-code-review.py` disponível em seu cache `.ai-standards/`.
+- O gatilho de CI deve configurar `paths-ignore` para arquivos Markdown, evitando execução duplicada com o Spec Review.
+- O Agente de Code Review tentará modelos com maior capacidade de raciocínio lógico (ex: Gemini 1.5 Pro) antes de acionar fallbacks baseados em velocidade (Flash).
