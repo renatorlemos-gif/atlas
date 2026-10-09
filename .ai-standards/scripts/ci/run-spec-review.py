@@ -64,48 +64,57 @@ def run_review(diffs):
 
     client = genai.Client()
     
-    models_to_try = ['gemini-3.1-pro-preview', 'gemini-3.8-flash', 'gemini-3.8-flash-8b']
+    models_to_try = ['gemini-1.5-flash', 'gemini-3.8-flash', 'gemini-1.5-pro']
     response = None
+    import time
 
     for model_name in models_to_try:
         print(f"Enviando Diff para o Spec Reviewer (Tentando modelo: {model_name})...")
         
-        try:
-            response = client.models.generate_content(
-                model=model_name,
-                contents=user_prompt,
-                config=types.GenerateContentConfig(
-                    system_instruction=system_instruction,
-                    temperature=0.1,
-                    response_mime_type="application/json",
-                    response_schema=types.Schema(
-                        type=types.Type.OBJECT,
-                        properties={
-                            "status": types.Schema(type=types.Type.STRING, enum=["APPROVED", "CHANGES_REQUESTED"]),
-                            "comments": types.Schema(
-                                type=types.Type.ARRAY,
-                                items=types.Schema(
-                                    type=types.Type.OBJECT,
-                                    properties={
-                                        "file": types.Schema(type=types.Type.STRING),
-                                        "feedback": types.Schema(type=types.Type.STRING),
-                                        "severity": types.Schema(type=types.Type.STRING, enum=["BLOCKER", "WARNING"])
-                                    },
-                                    required=["file", "feedback", "severity"]
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=user_prompt,
+                    config=types.GenerateContentConfig(
+                        system_instruction=system_instruction,
+                        temperature=0.1,
+                        response_mime_type="application/json",
+                        response_schema=types.Schema(
+                            type=types.Type.OBJECT,
+                            properties={
+                                "status": types.Schema(type=types.Type.STRING, enum=["APPROVED", "CHANGES_REQUESTED"]),
+                                "comments": types.Schema(
+                                    type=types.Type.ARRAY,
+                                    items=types.Schema(
+                                        type=types.Type.OBJECT,
+                                        properties={
+                                            "file": types.Schema(type=types.Type.STRING),
+                                            "feedback": types.Schema(type=types.Type.STRING),
+                                            "severity": types.Schema(type=types.Type.STRING, enum=["BLOCKER", "WARNING"])
+                                        },
+                                        required=["file", "feedback", "severity"]
+                                    )
                                 )
-                            )
-                        },
-                        required=["status", "comments"]
+                            },
+                            required=["status", "comments"]
+                        )
                     )
                 )
-            )
-            print(f"Sucesso com o modelo {model_name}!")
-            break  # Sai do loop se a chamada for bem-sucedida
-            
-        except Exception as e:
-            print(f"Falha ao tentar usar o modelo {model_name}: {e}")
-            print("Tentando o proximo modelo da lista...\n")
-            continue
+                print(f"Sucesso com o modelo {model_name}!")
+                break  # Sai do loop de retries
+            except Exception as e:
+                error_str = str(e)
+                if '503' in error_str and attempt < max_retries - 1:
+                    print(f"Erro 503 (Sobrecarga) no {model_name}. Aguardando 5 segundos para tentar de novo...")
+                    time.sleep(5)
+                    continue
+                print(f"Falha ao tentar usar o modelo {model_name}: {e}")
+                break # Sai do loop de retries e vai pro proximo modelo
+                
+        if response:
+            break # Sai do loop de modelos se teve sucesso
 
     if not response:
         print("Erro Crítico: Todas as tentativas de chamada aos modelos do Gemini falharam.")
