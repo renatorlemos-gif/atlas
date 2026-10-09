@@ -83,8 +83,8 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       country_of_origin: format.country_of_origin,
       classification: format.classification,
       synopsis: format.synopsis,
-      tags: format.tags.map((t) => t.tag),
-      commercial_contacts: format.contacts.map((c) => ({
+      tags: format.tags.map((t: any) => t.tag),
+      commercial_contacts: format.contacts.map((c: any) => ({
         id: c.id,
         name: c.name,
         email: c.email,
@@ -107,7 +107,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 router.get('/', async (req: Request, res: Response) => {
     const { q, distributor, classification, tags, page = '1', limit = '20' } = req.query;
 
-    const whereClause: Prisma.FormatWhereInput = {};
+    const whereClause: any = {};
 
     if (q) {
         const queryStr = String(q);
@@ -151,13 +151,13 @@ router.get('/', async (req: Request, res: Response) => {
             })
         ]);
 
-        const data = formats.map(f => ({
+        const data = formats.map((f: any) => ({
             id: f.id,
             original_name: f.original_name,
             translated_name: f.translated_name,
             classification: f.classification,
             distributor: f.distributor,
-            tags: f.tags.map(t => t.tag),
+            tags: f.tags.map((t: any) => t.tag),
             created_at: f.created_at
         }));
 
@@ -196,8 +196,8 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
             country_of_origin: format.country_of_origin,
             classification: format.classification,
             synopsis: format.synopsis,
-            tags: format.tags.map((t) => t.tag),
-            commercial_contacts: format.contacts.map((c) => ({
+            tags: format.tags.map((t: any) => t.tag),
+            commercial_contacts: format.contacts.map((c: any) => ({
                 id: c.id,
                 name: c.name,
                 email: c.email,
@@ -254,7 +254,7 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const updatedFormat = await prisma.$transaction(async (tx) => {
+        const updatedFormat = await prisma.$transaction(async (tx: any) => {
             // Delete old tags and contacts
             await tx.formatTag.deleteMany({ where: { format_id: id } });
             await tx.formatContact.deleteMany({ where: { format_id: id } });
@@ -295,8 +295,8 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
             country_of_origin: updatedFormat.country_of_origin,
             classification: updatedFormat.classification,
             synopsis: updatedFormat.synopsis,
-            tags: updatedFormat.tags.map((t) => t.tag),
-            commercial_contacts: updatedFormat.contacts.map((c) => ({
+            tags: updatedFormat.tags.map((t: any) => t.tag),
+            commercial_contacts: updatedFormat.contacts.map((c: any) => ({
                 id: c.id,
                 name: c.name,
                 email: c.email,

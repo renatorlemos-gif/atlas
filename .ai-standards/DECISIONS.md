@@ -1083,3 +1083,32 @@ Instituímos a **Absolute Framework Override** e a exigência de **Pull Requests
 
 - O arquivo global `governance/quality-gates.md` foi atualizado para não permitir aprovações informais (chat) no Gate 3.3 e 3.4.
 - O template central `templates/project/AGENTS.md` recebeu a regra mestre *ABSOLUTE FRAMEWORK OVERRIDE* na primeira linha de suas diretrizes operacionais.
+
+
+---
+
+## DEC-025 — Agent Spec Review via CI (Local Execution)
+
+**Status:** Accepted
+
+### Decision
+
+A capacidade de "Agent Spec Review" (revisão automatizada de artefatos de produto e documentação) será implementada como uma *Capability* distribuída.
+O repositório central fornecerá:
+1. O Padrão Normativo (`agent-spec-review-standard.md`).
+2. O Motor de Execução (Script Python em `scripts/ci/run-spec-review.py`).
+3. O Template de Gatilho (ex: `templates/ci/github-action-spec-review.yml`).
+
+Esses artefatos serão consumidos pelos projetos via processo de *Vendoring* (`.ai-standards/`). O pipeline de CI do projeto executará o agente localmente.
+
+### Rationale
+
+Para garantir a **Compatibilidade de Versão**, o Agente precisa avaliar os documentos de uma *Pull Request* utilizando as regras normativas exatas que aquele projeto adotou.
+Se o repositório central rodasse a revisão ativamente, haveria acoplamento e risco de quebrar projetos desatualizados.
+Rodando o *Spec Reviewer* dentro do CI do projeto e apontando-o para a pasta `.ai-standards/` local, garante-se que a revisão respeite estritamente a versão de governança contida naquela respectiva *branch*.
+
+### Consequences
+
+- Projetos consumidores precisam configurar seu CI copiando o template fornecido e adicionando uma chave de API (`GEMINI_API_KEY`) em seus *secrets*.
+- O script em Python fornecido no framework deve ser mantido compatível com os runners padrões (ex: Ubuntu) sem exigir dependências sistêmicas complexas além do pacote `google-genai`.
+- O Agente rodando no CI está PROIBIDO de acessar remotamente o repositório central para buscar regras. O cache local (`.ai-standards/`) é a única *Source of Truth* durante o review.

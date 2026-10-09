@@ -1,16 +1,16 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { FormatDetail } from '../components/FormatDetail';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import axios from 'axios';
 import React from 'react';
 
-jest.mock('axios');
+vi.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('FormatDetail (US-003)', () => {
     afterEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     it('Cenário 1: Consulta de detalhes de formato com sucesso', async () => {
@@ -79,6 +79,6 @@ describe('FormatDetail (US-003)', () => {
         fireEvent.click(screen.getByText('Salvar Alterações'));
         
         expect(await screen.findByText('Distribuidor é obrigatório')).toBeInTheDocument();
-        expect(input).toHaveStyle('border-color: red');
+        expect(input).toHaveStyle('border-color: rgb(255, 0, 0)');
     });
 });
