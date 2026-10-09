@@ -1112,3 +1112,30 @@ Rodando o *Spec Reviewer* dentro do CI do projeto e apontando-o para a pasta `.a
 - Projetos consumidores precisam configurar seu CI copiando o template fornecido e adicionando uma chave de API (`GEMINI_API_KEY`) em seus *secrets*.
 - O script em Python fornecido no framework deve ser mantido compatível com os runners padrões (ex: Ubuntu) sem exigir dependências sistêmicas complexas além do pacote `google-genai`.
 - O Agente rodando no CI está PROIBIDO de acessar remotamente o repositório central para buscar regras. O cache local (`.ai-standards/`) é a única *Source of Truth* durante o review.
+
+
+---
+
+## DEC-031 — Agent Code Review via CI (Local Execution)
+
+**Status:** Accepted
+
+### Decision
+
+A capacidade de "Agent Code Review" (revisão automatizada de código-fonte) será implementada através de *Vendoring*, seguindo a mesma arquitetura de Inversão de Controle estabelecida na DEC-030.
+
+O framework fornecerá:
+1. Padrão Normativo (`development/agent-code-review-standard.md`).
+2. Motor de Execução (`scripts/ci/run-code-review.py`).
+3. Template de Gatilho (`templates/ci/github-action-code-review.yml`).
+
+### Rationale
+
+O Code Review automatizado possui alta propensão a gerar "ruído" (falsos-positivos de estilo e linting) que frustra os desenvolvedores. Para mitigar isso, o modelo arquitetural exige que o Agente foque estritamente em falhas lógicas graves, segurança, performance estrutural e respeito a ADRs, ignorando formatações cosméticas.
+O isolamento em duas *capabilities* (Spec Review para markdown e Code Review para código) permite o uso de modelos diferentes e prompts estritamente direcionados.
+
+### Consequences
+
+- Projetos rodando esta capability precisarão ter o script `run-code-review.py` disponível em seu cache `.ai-standards/`.
+- O gatilho de CI deve configurar `paths-ignore` para arquivos Markdown, evitando execução duplicada com o Spec Review.
+- O Agente de Code Review tentará modelos com maior capacidade de raciocínio lógico (ex: Gemini 1.5 Pro) antes de acionar fallbacks baseados em velocidade (Flash).
