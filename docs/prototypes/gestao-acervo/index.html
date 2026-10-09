@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Atlas - Gestão de Acervo (Protótipo)</title>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            'globo-yellow': '#FFE22B',
+            'globo-orange': '#FFA600',
+            'globo-red': '#FF3132',
+            'globo-blue': '#00B8FF',
+            'globo-green': '#00C46D',
+            'surface-bg': '#121212',
+            'surface-card': '#1E1E1E',
+            'border-subtle': '#333333',
+            'text-primary': '#E0E0E0',
+            'text-secondary': '#9E9E9E',
+            'status-success': '#00C46D',
+            'status-warning': '#FFA600',
+            'status-error': '#FF3132'
+          },
+          fontFamily: { sans: ['Inter', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #121212; color: #E0E0E0; margin: 0; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    function GestaoAcervo() {
+      const [view, setView] = useState('list');
+      const [loading, setLoading] = useState(false);
+      const [errors, setErrors] = useState({});
+      const [formData, setFormData] = useState({ title: '', distributor: '' });
+      const [showToast, setShowToast] = useState(false);
+
+      const handleSave = () => {
+        const newErrors = {};
+        if (!formData.title) newErrors.title = 'Título Original é obrigatório';
+        if (!formData.distributor) newErrors.distributor = 'Distribuidor é obrigatório';
+        
+        if (Object.keys(newErrors).length > 0) {
+          setErrors(newErrors);
+          return;
+        }
+
+        setErrors({});
+        setLoading(true);
+        setTimeout(() => {
+          setLoading(false);
+          setShowToast(true);
+          setView('details');
+          setTimeout(() => setShowToast(false), 3000);
+        }, 1500);
+      };
+
+      return (
+        <div className="min-h-screen bg-surface-bg text-text-primary p-6 font-sans">
+          <header className="mb-8 flex justify-between items-center border-b border-border-subtle pb-4">
+            <div>
+              <h1 className="text-2xl font-bold text-text-primary">Atlas / Gestão de Acervo</h1>
+              <p className="text-sm text-text-secondary">Catálogo de propriedades intelectuais e inteligência de mercado</p>
+            </div>
+            {view === 'list' && (
+              <button 
+                onClick={() => setView('create')}
+                className="bg-gradient-to-r from-globo-orange to-globo-red text-white font-semibold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity"
+              >
+                + Novo Formato
+              </button>
+            )}
+            {view !== 'list' && (
+              <button 
+                onClick={() => setView('list')}
+                className="border border-border-subtle text-text-primary font-semibold py-2 px-4 rounded-lg hover:bg-surface-card transition-colors"
+              >
+                Voltar
+              </button>
+            )}
+          </header>
+
+          {showToast && (
+            <div className="fixed top-4 right-4 bg-status-success text-white px-4 py-3 rounded-lg shadow-lg">
+              ✓ Formato salvo com sucesso!
+            </div>
+          )}
+
+          {view === 'list' && (
+            <div className="space-y-6">
+              <div className="flex gap-4">
+                <input 
+                  type="text" 
+                  placeholder="Buscar por título, distribuidor ou tag..." 
+                  className="w-full max-w-lg bg-surface-card border border-border-subtle rounded-md px-4 py-2.5 focus:outline-none focus:border-globo-blue text-text-primary"
+                />
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="bg-surface-card border border-border-subtle rounded-md p-5 hover:border-globo-blue cursor-pointer transition-colors" onClick={() => setView('details')}>
+                  <div className="flex justify-between items-start mb-3">
+                    <span className="bg-[#2A2A2A] text-xs px-2 py-1 rounded text-text-secondary">Non-Scripted</span>
+                    <span className="text-text-secondary text-xs">Ano: 2024</span>
+                  </div>
+                  <h3 className="text-xl font-bold mb-1">The Traitors</h3>
+                  <p className="text-sm text-text-secondary mb-4">All3Media • Holanda</p>
+                  <div className="flex gap-2">
+                    <span className="text-[10px] uppercase border border-border-subtle px-2 py-1 rounded-full text-text-secondary">Reality</span>
+                    <span className="text-[10px] uppercase border border-border-subtle px-2 py-1 rounded-full text-text-secondary">Estratégia</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {view === 'create' && (
+            <div className="bg-surface-card border border-border-subtle rounded-lg p-6 max-w-4xl mx-auto shadow-sm">
+              <h2 className="text-xl font-bold mb-6 border-b border-border-subtle pb-2">Cadastrar Novo Formato (IP)</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div>
+                  <label className="text-text-secondary text-sm block mb-1">Título Original *</label>
+                  <input
+                    type="text"
+                    value={formData.title}
+                    onChange={e => setFormData({...formData, title: e.target.value})}
+                    className={`w-full bg-surface-bg border ${errors.title ? 'border-status-error' : 'border-border-subtle'} rounded-sm px-3 py-2 focus:outline-none focus:border-globo-blue`}
+                    placeholder="Ex: The Masked Singer"
+                  />
+                  {errors.title && <p className="text-status-error text-xs mt-1">⚠ {errors.title}</p>}
+                </div>
+                <div>
+                  <label className="text-text-secondary text-sm block mb-1">Distribuidor *</label>
+                  <input
+                    type="text"
+                    value={formData.distributor}
+                    onChange={e => setFormData({...formData, distributor: e.target.value})}
+                    className={`w-full bg-surface-bg border ${errors.distributor ? 'border-status-error' : 'border-border-subtle'} rounded-sm px-3 py-2 focus:outline-none focus:border-globo-blue`}
+                    placeholder="Ex: Fremantle"
+                  />
+                  {errors.distributor && <p className="text-status-error text-xs mt-1">⚠ {errors.distributor}</p>}
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-text-secondary text-sm block mb-1">Sinopse (Scout)</label>
+                  <textarea
+                    rows="4"
+                    className="w-full bg-surface-bg border border-border-subtle rounded-sm px-3 py-2 focus:outline-none focus:border-globo-blue"
+                    placeholder="Resumo do formato..."
+                  ></textarea>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-4">
+                <button 
+                  onClick={() => setView('list')}
+                  className="text-text-primary font-semibold py-2 px-4 rounded-lg hover:bg-[#2A2A2A] transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={handleSave}
+                  disabled={loading}
+                  className="bg-globo-blue text-surface-bg font-semibold py-2 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                  {loading ? 'Salvando...' : 'Salvar Formato'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {view === 'details' && (
+            <div className="max-w-4xl mx-auto space-y-6">
+              <div className="bg-surface-card border border-border-subtle rounded-lg p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                 <div>
+                    <div className="flex items-center gap-3 mb-2">
+                       <h2 className="text-3xl font-bold text-text-primary">{formData.title || 'The Traitors'}</h2>
+                       <span className="bg-[#2A2A2A] text-xs px-2 py-1 rounded text-text-secondary">Non-Scripted</span>
+                    </div>
+                    <p className="text-text-secondary">Distribuidor: <strong className="text-text-primary">{formData.distributor || 'All3Media'}</strong></p>
+                 </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<GestaoAcervo />);
+  </script>
+</body>
+</html>
