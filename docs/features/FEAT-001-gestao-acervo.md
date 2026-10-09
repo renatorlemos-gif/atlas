@@ -2,7 +2,7 @@
 id: FEAT-001
 title: Gestão de Acervo de Formatos & Scout de Mercado (IP Base)
 priority: 1
-status: Draft
+status: Approved
 ---
 # FEAT-001: Gestão de Acervo de Formatos & Scout de Mercado (IP Base)
 
