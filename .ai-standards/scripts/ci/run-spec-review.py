@@ -64,41 +64,58 @@ def run_review(diffs):
 
     client = genai.Client()
     
-    print("Enviando Diff para o Spec Reviewer (Gemini 3.1 Pro)...")
-    
-    try:
-        response = client.models.generate_content(
-            model='gemini-3.1-pro-preview',
-            contents=user_prompt,
-            config=types.GenerateContentConfig(
-                system_instruction=system_instruction,
-                temperature=0.1,
-                response_mime_type="application/json",
-                response_schema=types.Schema(
-                    type=types.Type.OBJECT,
-                    properties={
-                        "status": types.Schema(type=types.Type.STRING, enum=["APPROVED", "CHANGES_REQUESTED"]),
-                        "comments": types.Schema(
-                            type=types.Type.ARRAY,
-                            items=types.Schema(
-                                type=types.Type.OBJECT,
-                                properties={
-                                    "file": types.Schema(type=types.Type.STRING),
-                                    "feedback": types.Schema(type=types.Type.STRING),
-                                    "severity": types.Schema(type=types.Type.STRING, enum=["BLOCKER", "WARNING"])
-                                },
-                                required=["file", "feedback", "severity"]
+    models_to_try = ['gemini-3.1-pro-preview', 'gemini-2.5-flash', 'gemini-2.0-flash']
+    response = None
+
+    for model_name in models_to_try:
+        print(f"Enviando Diff para o Spec Reviewer (Tentando modelo: {model_name})...")
+        
+        try:
+            response = client.models.generate_content(
+                model=model_name,
+                contents=user_prompt,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
+                    temperature=0.1,
+                    response_mime_type="application/json",
+                    response_schema=types.Schema(
+                        type=types.Type.OBJECT,
+                        properties={
+                            "status": types.Schema(type=types.Type.STRING, enum=["APPROVED", "CHANGES_REQUESTED"]),
+                            "comments": types.Schema(
+                                type=types.Type.ARRAY,
+                                items=types.Schema(
+                                    type=types.Type.OBJECT,
+                                    properties={
+                                        "file": types.Schema(type=types.Type.STRING),
+                                        "feedback": types.Schema(type=types.Type.STRING),
+                                        "severity": types.Schema(type=types.Type.STRING, enum=["BLOCKER", "WARNING"])
+                                    },
+                                    required=["file", "feedback", "severity"]
+                                )
                             )
-                        )
-                    },
-                    required=["status", "comments"]
+                        },
+                        required=["status", "comments"]
+                    )
                 )
             )
-        )
+            print(f"Sucesso com o modelo {model_name}!")
+            break  # Sai do loop se a chamada for bem-sucedida
+            
+        except Exception as e:
+            print(f"Falha ao tentar usar o modelo {model_name}: {e}")
+            print("Tentando o proximo modelo da lista...\n")
+            continue
+
+    if not response:
+        print("Erro Crítico: Todas as tentativas de chamada aos modelos do Gemini falharam.")
+        print("Verifique sua chave de API e as cotas do seu plano no Google AI Studio.")
+        sys.exit(1)
         
+    try:
         return json.loads(response.text)
     except Exception as e:
-        print(f"Erro ao chamar a API do Gemini: {e}")
+        print(f"Erro ao converter a resposta do Gemini para JSON: {e}")
         sys.exit(1)
 
 def main():
